@@ -24,6 +24,32 @@
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
       overflow: hidden;
+      transition: max-width 0.3s ease;
+    }
+    #top-bar {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      background: #0084ff;
+      color: white;
+      font-weight: bold;
+    }
+    #top-bar input {
+      margin-left: 10px;
+      flex: 1;
+      padding: 4px 6px;
+      border: none;
+      border-radius: 6px;
+    }
+    #top-bar button {
+      margin-left: 8px;
+      background: white;
+      color: #0084ff;
+      border: none;
+      border-radius: 6px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-weight: bold;
     }
     #chat-box {
       flex: 1;
@@ -70,7 +96,7 @@
       padding: 8px;
       font-size: 14px;
       min-height: 40px;
-      max-height: 120px;
+      max-height: 50vh; /* обмеження = половина екрана */
       overflow-y: auto;
     }
     #send-btn {
@@ -90,6 +116,10 @@
 </head>
 <body>
   <div id="chat-container">
+    <div id="top-bar">
+      URL: <input id="webhook-input" type="text" placeholder="Встав свій webhook URL">
+      <button id="mode-btn">Компактний</button>
+    </div>
     <div id="chat-box"></div>
     <div id="input-container">
       <textarea id="message-input" rows="1" placeholder="Напишіть повідомлення..."></textarea>
@@ -101,8 +131,15 @@
     const chatBox = document.getElementById("chat-box");
     const messageInput = document.getElementById("message-input");
     const sendBtn = document.getElementById("send-btn");
+    const webhookInput = document.getElementById("webhook-input");
+    const modeBtn = document.getElementById("mode-btn");
+    const chatContainer = document.getElementById("chat-container");
 
-    const WEBHOOK_URL = "http://localhost:5678/webhook-test/a0842b99-3740-41a0-9ecd-736d9f4c5f6d";
+    // зберігати URL в localStorage
+    webhookInput.value = localStorage.getItem("webhookURL") || "";
+    webhookInput.addEventListener("change", () => {
+      localStorage.setItem("webhookURL", webhookInput.value);
+    });
 
     function addMessage(text, sender) {
       const msg = document.createElement("div");
@@ -128,7 +165,8 @@
 
     async function sendMessage() {
       const text = messageInput.value.trim();
-      if (!text) return;
+      const WEBHOOK_URL = webhookInput.value.trim();
+      if (!text || !WEBHOOK_URL) return;
 
       addMessage(text, "user");
       messageInput.value = "";
@@ -152,10 +190,8 @@
       }
     }
 
-    // Відправка по кнопці
     sendBtn.addEventListener("click", sendMessage);
 
-    // Enter = відправити, Shift+Enter = новий рядок
     messageInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -163,10 +199,17 @@
       }
     });
 
-    // Авто-збільшення textarea
     messageInput.addEventListener("input", () => {
       messageInput.style.height = "auto";
-      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + "px";
+      messageInput.style.height = Math.min(messageInput.scrollHeight, window.innerHeight * 0.5) + "px";
+    });
+
+    // Перемикання режиму
+    let compact = true;
+    modeBtn.addEventListener("click", () => {
+      compact = !compact;
+      chatContainer.style.maxWidth = compact ? "600px" : "100%";
+      modeBtn.textContent = compact ? "Компактний" : "Широкий";
     });
   </script>
 </body>
