@@ -253,7 +253,7 @@
           method: 'POST',
           headers,
           body: JSON.stringify({ message, session_id: sessionId }),
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(1000000)
         });
         const data = await response.json();
         loading.style.display = 'none';
