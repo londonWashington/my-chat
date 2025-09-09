@@ -3,213 +3,327 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Chat</title>
+  <title>Чат з AI</title>
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
   <style>
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --chat-bg: #fff;
+      --user-bg: #e0f7fa;
+      --ai-bg: #f5f5f5;
+      --border-color: #ddd;
+      --accent-color: #007bff;
+    }
+    body.dark {
+      --bg-color: #1e1e1e;
+      --text-color: #eee;
+      --chat-bg: #2c2c2c;
+      --user-bg: #0d7377;
+      --ai-bg: #3a3a3a;
+      --border-color: #444;
+      --accent-color: #4da6ff;
+    }
     body {
-      font-family: sans-serif;
-      background: #f0f2f5;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
+      padding: 20px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
     }
     #chat-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
-      max-width: 600px;
-      height: 90vh;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      overflow: hidden;
-      transition: max-width 0.3s ease;
-    }
-    #top-bar {
-      display: flex;
-      align-items: center;
-      padding: 8px;
-      background: #0084ff;
-      color: white;
-      font-weight: bold;
-    }
-    #top-bar input {
-      margin-left: 10px;
-      flex: 1;
-      padding: 4px 6px;
-      border: none;
-      border-radius: 6px;
-    }
-    #top-bar button {
-      margin-left: 8px;
-      background: white;
-      color: #0084ff;
-      border: none;
-      border-radius: 6px;
-      padding: 4px 8px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    #chat-box {
-      flex: 1;
+      max-width: 1000px;
+      margin: auto;
+      border: 1px solid var(--border-color);
       padding: 15px;
+      background: var(--chat-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+    }
+    #chat-container.compact {
+      max-width: 600px;
+      height: 80vh;
+    }
+    #chat-history {
+      height: 400px;
       overflow-y: auto;
+      padding: 10px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 10px;
     }
     .message {
-      max-width: 75%;
-      margin: 8px 0;
-      padding: 10px 14px;
-      border-radius: 16px;
-      line-height: 1.4;
-      word-wrap: break-word;
-      white-space: pre-wrap;
-    }
-    .user {
-      background: #0084ff;
-      color: white;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
-    .ai {
-      background: #e5e5ea;
-      color: black;
-      margin-right: auto;
-      border-bottom-left-radius: 4px;
-    }
-    .typing {
-      font-style: italic;
-      color: gray;
-      margin: 4px 0;
-    }
-    #input-container {
-      display: flex;
+      margin: 10px 0;
       padding: 10px;
-      border-top: 1px solid #ddd;
-      background: #fafafa;
-    }
-    #message-input {
-      flex: 1;
-      resize: none;
-      border: 1px solid #ccc;
       border-radius: 8px;
-      padding: 8px;
-      font-size: 14px;
-      min-height: 40px;
-      max-height: 50vh; /* обмеження = половина екрана */
-      overflow-y: auto;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
-    #send-btn {
-      margin-left: 8px;
-      padding: 0 16px;
-      background: #0084ff;
+    .message.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .user { background: var(--user-bg); margin-left: 20%; }
+    .ai { background: var(--ai-bg); margin-right: 20%; }
+    #chat-input {
+      width: 100%;
+      min-height: 40px;
+      max-height: 50vh;
+      overflow-y: auto;
+      padding: 10px;
+      margin-top: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--chat-bg);
+      color: var(--text-color);
+      resize: none;
+      box-sizing: border-box;
+    }
+    #send-btn, #menu-toggle, #retry-btn {
+      padding: 8px 12px;
+      margin: 5px 2px 0 0;
+      background: var(--accent-color);
       color: white;
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
-      font-weight: bold;
+      transition: background 0.2s;
     }
-    #send-btn:hover {
-      background: #006fd6;
+    #send-btn:hover, #menu-toggle:hover, #retry-btn:hover {
+      background: #0056b3;
     }
+    #retry-btn { display: none; background: #ff9800; }
+    #retry-btn:hover { background: #f57c00; }
+    #menu-panel {
+      display: none;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: var(--chat-bg);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #menu-panel.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #url-input, #token-input, #search-input, #session-select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    #loading { display: none; color: var(--accent-color); font-style: italic; }
   </style>
 </head>
 <body>
   <div id="chat-container">
-    <div id="top-bar">
-      URL: <input id="webhook-input" type="text" placeholder="Встав свій webhook URL">
-      <button id="mode-btn">Компактний</button>
+    <button id="menu-toggle">⋮</button>
+    <div id="menu-panel">
+      <select id="session-select">
+        <option value="Book1">Книга 1</option>
+        <option value="Book2">Книга 2</option>
+        <option value="Book3">Книга 3</option>
+      </select>
+      <input type="text" id="url-input" placeholder="Введіть URL вебхука (зберігається автоматично)">
+      <input type="text" id="token-input" placeholder="Введіть токен автентифікації (опціонально)">
+      <input type="text" id="search-input" placeholder="Пошук по історії чату...">
+      <button id="clear-btn">Очистити чат</button>
+      <button id="export-btn">Експорт</button>
+      <button id="theme-toggle">Темна тема</button>
+      <button id="compact-toggle">Компактний режим</button>
     </div>
-    <div id="chat-box"></div>
-    <div id="input-container">
-      <textarea id="message-input" rows="1" placeholder="Напишіть повідомлення..."></textarea>
-      <button id="send-btn">➤</button>
-    </div>
+    <div id="chat-history"></div>
+    <textarea id="chat-input" placeholder="Введіть повідомлення..."></textarea>
+    <button id="send-btn">Надіслати</button>
+    <button id="retry-btn">Retry</button>
+    <div id="loading" class="loading">AI думає...</div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    const chatBox = document.getElementById("chat-box");
-    const messageInput = document.getElementById("message-input");
-    const sendBtn = document.getElementById("send-btn");
-    const webhookInput = document.getElementById("webhook-input");
-    const modeBtn = document.getElementById("mode-btn");
-    const chatContainer = document.getElementById("chat-container");
+    const chatHistory = document.getElementById('chat-history');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const retryBtn = document.getElementById('retry-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const themeToggle = document.getElementById('theme-toggle');
+    const compactToggle = document.getElementById('compact-toggle');
+    const menuToggle = document.getElementById('menu-toggle');
+    const menuPanel = document.getElementById('menu-panel');
+    const urlInput = document.getElementById('url-input');
+    const tokenInput = document.getElementById('token-input');
+    const searchInput = document.getElementById('search-input');
+    const sessionSelect = document.getElementById('session-select');
 
-    // зберігати URL в localStorage
-    webhookInput.value = localStorage.getItem("webhookURL") || "";
-    webhookInput.addEventListener("change", () => {
-      localStorage.setItem("webhookURL", webhookInput.value);
+    let lastMessage = '';
+    let webhookUrl = localStorage.getItem('webhookUrl') || '';
+    let authToken = localStorage.getItem('authToken') || '';
+    let sessionId = localStorage.getItem('sessionId') || 'Book1';
+    let messages = [];
+
+    // Ініціалізація
+    urlInput.value = webhookUrl;
+    tokenInput.value = authToken;
+    sessionSelect.value = sessionId;
+    if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+    if (localStorage.getItem('compactMode') === 'true') document.getElementById('chat-container').classList.add('compact');
+    themeToggle.textContent = document.body.classList.contains('dark') ? 'Світла тема' : 'Темна тема';
+    compactToggle.textContent = document.getElementById('chat-container').classList.contains('compact') ? 'Повний режим' : 'Компактний режим';
+
+    // Завантаження історії
+    async function loadHistory() {
+      if (!webhookUrl) return;
+      const historyUrl = `${webhookUrl.replace('/webhook/', '/get-history')}?session_id=${sessionId}`;
+      try {
+        const response = await fetch(historyUrl, { signal: AbortSignal.timeout(10000) });
+        const data = await response.json();
+        data.history.forEach(msg => addMessage(msg.text, msg.isUser));
+      } catch (error) {
+        console.error('Помилка завантаження історії:', error);
+        Swal.fire({ icon: 'error', title: 'Помилка', text: 'Не вдалося завантажити історію', confirmButtonText: 'OK' });
+      }
+    }
+    document.addEventListener('DOMContentLoaded', loadHistory);
+
+    // Збереження налаштувань
+    urlInput.addEventListener('change', () => {
+      webhookUrl = urlInput.value;
+      localStorage.setItem('webhookUrl', webhookUrl);
+      loadHistory(); // Оновлюємо історію при зміні URL
+    });
+    tokenInput.addEventListener('change', () => {
+      authToken = tokenInput.value;
+      localStorage.setItem('authToken', authToken);
+    });
+    sessionSelect.addEventListener('change', () => {
+      sessionId = sessionSelect.value;
+      localStorage.setItem('sessionId', sessionId);
+      chatHistory.innerHTML = '';
+      messages = [];
+      loadHistory();
     });
 
-    function addMessage(text, sender) {
-      const msg = document.createElement("div");
-      msg.className = "message " + sender;
-      msg.textContent = text;
-      chatBox.appendChild(msg);
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // Динамічна висота textarea
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = `${Math.min(chatInput.scrollHeight, window.innerHeight * 0.5)}px`;
+    });
+
+    // Меню
+    menuToggle.addEventListener('click', () => {
+      menuPanel.classList.toggle('visible');
+    });
+
+    // Додавання повідомлення
+    function addMessage(text, isUser) {
+      const message = document.createElement('div');
+      message.className = `message ${isUser ? 'user' : 'ai'}`;
+      message.innerHTML = isUser ? text : marked.parse(text);
+      chatHistory.appendChild(message);
+      setTimeout(() => message.classList.add('visible'), 10);
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+      messages.push({ text, isUser });
     }
 
-    function addTyping() {
-      const typing = document.createElement("div");
-      typing.className = "typing";
-      typing.id = "typing-indicator";
-      typing.textContent = "AI набирає...";
-      chatBox.appendChild(typing);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
+    // Відправка повідомлення
+    async function sendMessage(message = chatInput.value.trim()) {
+      if (!message || !webhookUrl) return;
 
-    function removeTyping() {
-      const typing = document.getElementById("typing-indicator");
-      if (typing) typing.remove();
-    }
-
-    async function sendMessage() {
-      const text = messageInput.value.trim();
-      const WEBHOOK_URL = webhookInput.value.trim();
-      if (!text || !WEBHOOK_URL) return;
-
-      addMessage(text, "user");
-      messageInput.value = "";
-      messageInput.style.height = "40px";
-
-      addTyping();
+      addMessage(message, true);
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      loading.style.display = 'block';
+      retryBtn.style.display = 'none';
+      lastMessage = message;
 
       try {
-        const res = await fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text })
+        const headers = { 'Content-Type': 'application/json' };
+        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ message, session_id: sessionId }),
+          signal: AbortSignal.timeout(10000)
         });
-        const data = await res.json();
-
-        removeTyping();
-        addMessage(data.reply || "⚠️ Немає відповіді від сервера", "ai");
-      } catch (err) {
-        removeTyping();
-        addMessage("❌ Помилка з'єднання", "ai");
+        const data = await response.json();
+        loading.style.display = 'none';
+        if (data.reply) {
+          addMessage(data.reply, false);
+        } else {
+          handleError('Немає відповіді від сервера');
+        }
+      } catch (error) {
+        loading.style.display = 'none';
+        handleError(`Помилка з'єднання: ${error.message}`);
       }
     }
 
-    sendBtn.addEventListener("click", sendMessage);
+    // Обробка помилок
+    function handleError(errorText) {
+      addMessage(`❌ ${errorText}`, false);
+      retryBtn.style.display = 'inline-block';
+      Swal.fire({ icon: 'error', title: 'Помилка', text: errorText, confirmButtonText: 'OK' });
+    }
 
-    messageInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+    // Retry
+    retryBtn.addEventListener('click', () => sendMessage(lastMessage));
+
+    // Пошук
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      chatHistory.querySelectorAll('.message').forEach(msg => {
+        msg.style.display = msg.textContent.toLowerCase().includes(query) ? 'block' : 'none';
+      });
+    });
+
+    // Очищення
+    clearBtn.addEventListener('click', () => {
+      chatHistory.innerHTML = '';
+      messages = [];
+    });
+
+    // Експорт
+    exportBtn.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(messages, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat_${sessionId}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Теми
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+      themeToggle.textContent = document.body.classList.contains('dark') ? 'Світла тема' : 'Темна тема';
+    });
+
+    // Компактний режим
+    compactToggle.addEventListener('click', () => {
+      document.getElementById('chat-container').classList.toggle('compact');
+      localStorage.setItem('compactMode', document.getElementById('chat-container').classList.contains('compact'));
+      compactToggle.textContent = document.getElementById('chat-container').classList.contains('compact') ? 'Повний режим' : 'Компактний режим';
+    });
+
+    // Події
+    sendBtn.addEventListener('click', () => sendMessage());
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
       }
-    });
-
-    messageInput.addEventListener("input", () => {
-      messageInput.style.height = "auto";
-      messageInput.style.height = Math.min(messageInput.scrollHeight, window.innerHeight * 0.5) + "px";
-    });
-
-    // Перемикання режиму
-    let compact = true;
-    modeBtn.addEventListener("click", () => {
-      compact = !compact;
-      chatContainer.style.maxWidth = compact ? "600px" : "100%";
-      modeBtn.textContent = compact ? "Компактний" : "Широкий";
     });
   </script>
 </body>
