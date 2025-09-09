@@ -2,49 +2,172 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Chat</title>
   <style>
-    body { font-family: sans-serif; max-width: 600px; margin: auto; }
-    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; }
-    .msg { margin: 5px 0; }
-    .user { text-align: right; color: blue; }
-    .bot { text-align: left; color: green; }
+    body {
+      font-family: sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    #chat-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 600px;
+      height: 90vh;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    #chat-box {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
+    .message {
+      max-width: 75%;
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 16px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+    .user {
+      background: #0084ff;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+    .ai {
+      background: #e5e5ea;
+      color: black;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+    .typing {
+      font-style: italic;
+      color: gray;
+      margin: 4px 0;
+    }
+    #input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: #fafafa;
+    }
+    #message-input {
+      flex: 1;
+      resize: none;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 14px;
+      min-height: 40px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    #send-btn {
+      margin-left: 8px;
+      padding: 0 16px;
+      background: #0084ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    #send-btn:hover {
+      background: #006fd6;
+    }
   </style>
 </head>
 <body>
-  <h1>AI Chat</h1>
-  <div id="chat"></div>
-  <input id="input" type="text" placeholder="Напиши повідомлення..." style="width:80%">
-  <button onclick="sendMessage()">Відправити</button>
+  <div id="chat-container">
+    <div id="chat-box"></div>
+    <div id="input-container">
+      <textarea id="message-input" rows="1" placeholder="Напишіть повідомлення..."></textarea>
+      <button id="send-btn">➤</button>
+    </div>
+  </div>
 
   <script>
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('input');
-    const webhookUrl = "http://localhost:5678/webhook-test/a0842b99-3740-41a0-9ecd-736d9f4c5f6d"; // <-- заміни на свій URL
+    const chatBox = document.getElementById("chat-box");
+    const messageInput = document.getElementById("message-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    const WEBHOOK_URL = "http://localhost:5678/webhook-test/a0842b99-3740-41a0-9ecd-736d9f4c5f6d";
 
     function addMessage(text, sender) {
-      const div = document.createElement('div');
-      div.className = 'msg ' + sender;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.textContent = text;
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addTyping() {
+      const typing = document.createElement("div");
+      typing.className = "typing";
+      typing.id = "typing-indicator";
+      typing.textContent = "AI набирає...";
+      chatBox.appendChild(typing);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById("typing-indicator");
+      if (typing) typing.remove();
     }
 
     async function sendMessage() {
-      const text = input.value.trim();
+      const text = messageInput.value.trim();
       if (!text) return;
-      addMessage(text, 'user');
-      input.value = '';
 
-      const res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
-      });
+      addMessage(text, "user");
+      messageInput.value = "";
+      messageInput.style.height = "40px";
 
-      const data = await res.json();
-      addMessage(data.reply, 'bot');
+      addTyping();
+
+      try {
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
+        const data = await res.json();
+
+        removeTyping();
+        addMessage(data.reply || "⚠️ Немає відповіді від сервера", "ai");
+      } catch (err) {
+        removeTyping();
+        addMessage("❌ Помилка з'єднання", "ai");
+      }
     }
+
+    // Відправка по кнопці
+    sendBtn.addEventListener("click", sendMessage);
+
+    // Enter = відправити, Shift+Enter = новий рядок
+    messageInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Авто-збільшення textarea
+    messageInput.addEventListener("input", () => {
+      messageInput.style.height = "auto";
+      messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + "px";
+    });
   </script>
 </body>
 </html>
