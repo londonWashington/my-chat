@@ -185,7 +185,7 @@
       if (!webhookUrl) return;
       const historyUrl = `${webhookUrl.replace('/webhook/', '/get-history')}?session_id=${sessionId}`;
       try {
-        const response = await fetch(historyUrl, { signal: AbortSignal.timeout(10000) });
+        const response = await fetch(historyUrl, { signal: AbortSignal.timeout(1000000) });
         const data = await response.json();
         data.history.forEach(msg => addMessage(msg.text, msg.isUser));
       } catch (error) {
