@@ -199,37 +199,46 @@
     compactToggle.textContent = document.getElementById('chat-container').classList.contains('compact') ? 'Повний режим' : 'Компактний режим';
 
     // Завантаження історії
-    async function loadHistory() {
-      if (!webhookUrl) {
-        console.error('Webhook URL не вказано');
-        Swal.fire({ icon: 'error', title: 'Помилка', text: 'Вкажіть URL вебхука', confirmButtonText: 'OK' });
-        return;
-      }
-      const baseUrl = webhookUrl.split('/webhook/')[0];
-      const historyUrl = `${baseUrl}/webhook/get-history?session_id=main-user`;
-      try {
-        const response = await fetch(historyUrl, { signal: AbortSignal.timeout(1000000) });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        if (data.history) {
-            chatHistory.innerHTML = ''; // Очищаємо, щоб уникнути дублювання
-            messages = []; // Очищаємо масив
-            data.history.forEach(msg => {
-            // Тут потрібно передати message.isUser
-            addMessage(msg.text, msg.isUser); 
-            });
-        }
-        setTimeout(() => {
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }, 100);
-      } catch (error) {
-        console.error('Помилка завантаження історії:', error);
-        Swal.fire({ icon: 'error', title: 'Помилка', text: `Не вдалося завантажити історію: ${error.message}`, confirmButtonText: 'OK' });
-      }
+    // Завантаження історії
+async function loadHistory() {
+  if (!webhookUrl) {
+    console.error('Webhook URL не вказано');
+    Swal.fire({ icon: 'error', title: 'Помилка', text: 'Вкажіть URL вебхука', confirmButtonText: 'OK' });
+    return;
+  }
+  const baseUrl = webhookUrl.split('/webhook/')[0];
+  const historyUrl = `${baseUrl}/webhook/get-history?session_id=main-user`;
+  try {
+    const response = await fetch(historyUrl, { 
+      method: 'GET', // Явно вказуємо GET для історії
+      headers: {
+        'ngrok-skip-browser-warning': 'true' // Обхід ngrok interstitial
+      },
+      signal: AbortSignal.timeout(10000) // 10 секунд, не 1 млн
+    });
+    console.log('Response status:', response.status); // Дебаг
+    console.log('Response headers:', [...response.headers.entries()]); // Дебаг CORS
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
     }
-    document.addEventListener('DOMContentLoaded', loadHistory);
+    const data = await response.json();
+    console.log('History data:', data); // Дебаг
+    if (data.history) {
+      chatHistory.innerHTML = ''; // Очищаємо, щоб уникнути дублювання
+      messages = []; // Очищаємо масив
+      data.history.forEach(msg => {
+        addMessage(msg.text, msg.isUser); 
+      });
+    }
+    setTimeout(() => {
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }, 100);
+  } catch (error) {
+    console.error('Помилка завантаження історії:', error);
+    Swal.fire({ icon: 'error', title: 'Помилка', text: `Не вдалося завантажити історію: ${error.message}`, confirmButtonText: 'OK' });
+  }
+}
+document.addEventListener('DOMContentLoaded', loadHistory);
 
     // Збереження налаштувань
     urlInput.addEventListener('change', () => {
@@ -368,3 +377,4 @@
   </script>
 </body>
 </html>
+
