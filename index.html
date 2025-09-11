@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Чат з AI</title>
   <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+   <meta charset="UTF-8" />
+  <title>AI Chat</title>
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💬</text></svg>">
+
   <style>
     :root {
       --bg-color: #f9f9f9;
@@ -16,18 +20,18 @@
       --accent-color: #007bff;
     }
     body.dark {
-      --bg-color: #1e1e1e;
+      --bg-color: #18191c;
       --text-color: #eee;
-      --chat-bg: #2c2c2c;
-      --user-bg: #0d7377;
-      --ai-bg: #3a3a3a;
+      --chat-bg: var(--bg-color);
+      --user-bg: #393b46;
+      --ai-bg: var(--bg-color);
       --border-color: #444;
       --accent-color: #4da6ff;
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0px;
       background: var(--bg-color);
       color: var(--text-color);
       transition: background 0.3s, color 0.3s;
@@ -36,17 +40,18 @@
       flex-direction: column;
     }
     #chat-container {
-      max-width: 1000px;
-      margin: auto;
-      border: 1px solid var(--border-color);
-      padding: 15px;
-      background: var(--chat-bg);
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: all 0.3s;
-      display: flex;
-      flex-direction: column;
-      min-height: calc(100vh - 40px);
+        max-width: 1000px;
+        margin: 0 auto;
+        /* Видаліть position: fixed */
+        border: 0px solid var(--border-color);
+        padding: 0px;
+        background: var(--chat-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        height: 100vh; /* Використовуйте 100vh для висоти */
     }
     #chat-container.compact {
       max-width: 600px;
@@ -55,8 +60,9 @@
       flex: 1;
       overflow-y: auto;
       padding: 10px;
-      border-bottom: 1px solid var(--border-color);
-      margin-bottom: 10px;
+      border-bottom: 0px solid var(--border-color);
+      margin-bottom: 0px;
+      line-height: 1.7;  
       display: flex;
       flex-direction: column;
     }
@@ -70,6 +76,7 @@
       opacity: 0;
       transform: translateY(10px);
       transition: opacity 0.3s ease, transform 0.3s ease;
+      position: relative;
     }
     .message.visible {
       opacity: 1;
@@ -85,35 +92,90 @@
       margin-right: auto;
       margin-left: 10px;
     }
+    .copy-btn {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .message:hover .copy-btn {
+        opacity: 0.7;
+    }
+    .copy-btn:hover {
+        opacity: 1;
+    }
+    #chat-container.compact #input-container {
+      max-width: 600px; /* Для компактного режиму */
+    }
     #chat-input {
       width: 100%;
-      min-height: 40px;
+      min-height: 90px;
       max-height: 50vh;
       overflow-y: auto;
-      padding: 10px;
-      margin-top: 10px;
-      border: 1px solid var(--border-color);
+      font-size: 18px;      /* більший шрифт */
+      line-height: 1.5;     /* щоб рядки не злипалися */
+      padding: 2px;
+      margin-top: 0px;
+      border: 0px solid var(--bg-color);
       border-radius: 8px;
       background: var(--chat-bg);
       color: var(--text-color);
       resize: none;
       box-sizing: border-box;
     }
-    #send-btn, #menu-toggle, #retry-btn {
+    #retry-btn {
+        width: 50px; /* Зменшення ширини */
+        height: 50px; /* Зменшення висоти */
+        padding: 0;
+        margin: 5px 2px 0 0;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%; /* Робимо кнопку круглою */
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 24px; /* Збільшуємо розмір значка */
+        line-height: 50px;
+        text-align: center;
+    }
+    #send-btn::before {
+        content: '▶'; /* Значок "відправити" */
+        font-size: 24px; /* Додано: Збільшуємо розмір шрифту для значка */
+        line-height: 1;
+    }
+    #send-btn {
+        content: '';
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%; /* Робимо кнопку круглою */
+        cursor: pointer;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.2s;
+    } 
+    #retry-btn { display: none; background: #ff9800; }
+    #retry-btn:hover { background: #f57c00; }
+    #menu-toggle {
+      width: 10px;
       padding: 8px 12px;
       margin: 5px 2px 0 0;
       background: var(--accent-color);
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 6px; 
       cursor: pointer;
       transition: background 0.2s;
     }
-    #send-btn:hover, #menu-toggle:hover, #retry-btn:hover {
+    #send-btn:hover, #menu-toggle:hover {
       background: #0056b3;
-    }
-    #retry-btn { display: none; background: #ff9800; }
-    #retry-btn:hover { background: #f57c00; }
+    } 
     #menu-panel {
       display: none;
       padding: 10px;
@@ -139,11 +201,50 @@
       box-sizing: border-box;
     }
     #input-container {
-      display: flex;
-      align-items: flex-end;
-      gap: 10px;
+        /* Видаліть ці рядки */
+        /* position: fixed; */
+        /* bottom: 20px; */
+        /* left: 20px; */
+        /* right: 20px; */
+        /* max-width: 1000px; */
+        /* margin: 0 auto; */
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        background: var(--chat-bg);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        /* Додайте це для правильного відображення */
+        border-top: 1px solid var(--border-color);
     }
-    #loading { display: none; color: var(--accent-color); font-style: italic; }
+    #loading {
+      position: fixed;
+      bottom: 70px; /* Над input-container */
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--accent-color);
+      font-style: italic;
+      display: none;
+    }
+    /* Налаштування скролбару */
+    ::-webkit-scrollbar {
+        width: 8px; /* Робимо скролбар тоншим */
+    }
+    /* Колір рухомої частини (thumb) */
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--border-color); /* Використовуємо колір бордера */
+        border-radius: 4px; /* Закруглюємо краї */
+    }
+    /* Колір рухомої частини при наведенні курсора */
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--text-color);
+    }
+    /* Колір треку (тла скролбару) */
+    ::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
   </style>
 </head>
 <body>
@@ -160,10 +261,12 @@
     </div>
     <div id="chat-history"></div>
     <div id="input-container">
-      <textarea id="chat-input" placeholder="Введіть повідомлення..."></textarea>
-      <button id="send-btn">Надіслати</button>
-      <button id="retry-btn">Retry</button>
+    <textarea id="chat-input" placeholder="Введіть повідомлення..."></textarea>
+    <div>
+        <button id="send-btn"></button>
+        <button id="retry-btn">Retry</button>
     </div>
+</div>
     <div id="loading" class="loading">AI думає...</div>
   </div>
 
@@ -198,7 +301,6 @@
     themeToggle.textContent = document.body.classList.contains('dark') ? 'Світла тема' : 'Темна тема';
     compactToggle.textContent = document.getElementById('chat-container').classList.contains('compact') ? 'Повний режим' : 'Компактний режим';
 
-    // Завантаження історії
     // Завантаження історії
 async function loadHistory() {
   if (!webhookUrl) {
@@ -264,21 +366,89 @@ document.addEventListener('DOMContentLoaded', loadHistory);
 
     // Додавання повідомлення
     function addMessage(text, isUser) {
-      const message = document.createElement('div');
-      message.classList.add('message', isUser ? 'user' : 'ai', 'visible');
-      let cleanedText = text
-        .replace(/```markdown\n?/, '')
-        .replace(/\n?```$/, '')
-        .replace(/\\n/g, '\n')
-        .replace(/^```|```$/g, '')
-        .trim();
-      message.innerHTML = isUser ? cleanedText : marked.parse(cleanedText);
-      chatHistory.appendChild(message);
-      setTimeout(() => {
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-      }, 10);
-      messages.push({ text: cleanedText, isUser });
+        const message = document.createElement('div');
+        message.classList.add('message', isUser ? 'user' : 'ai', 'visible');
+
+        let cleanedText = text
+            .replace(/```markdown\n?/, '')
+            .replace(/\n?```$/, '')
+            .replace(/\\n/g, '\n')
+            .replace(/^```|```$/g, '')
+            .trim();
+
+        const content = document.createElement('div');
+        content.classList.add('message-content');
+        content.innerHTML = isUser ? cleanedText : marked.parse(cleanedText);
+
+        const copyBtn = document.createElement('span');
+        copyBtn.classList.add('copy-btn');
+        copyBtn.textContent = "📋";
+        copyBtn.title = "Скопіювати";
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(cleanedText).then(() => {
+            copyBtn.textContent = "✅";
+            setTimeout(() => (copyBtn.textContent = "📋"), 1500);
+            });
+        });
+
+        message.appendChild(content);
+        message.appendChild(copyBtn);
+
+        chatHistory.appendChild(message);
+        setTimeout(() => {
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }, 10);
+
+        messages.push({ text: cleanedText, isUser });
     }
+
+
+    // стани favicon
+    let aiThinking = false;
+    let aiReady = false;
+
+    function setFaviconEmoji(emoji) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext("2d");
+        ctx.font = "64px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(emoji, 32, 32);
+
+        const favicon = document.getElementById("favicon");
+        favicon.href = canvas.toDataURL("image/png");
+    }
+
+    function onAIThinking() {
+        aiThinking = true;
+        aiReady = false;
+        setFaviconEmoji("⏳");
+    }
+
+    function onAIResponse(success = true) {
+        aiThinking = false;
+        aiReady = true;
+        setFaviconEmoji(success ? "✅" : "❌");
+    }
+
+    function resetFavicon() {
+        if (aiReady && !aiThinking) {
+        aiReady = false;
+        setFaviconEmoji("💬");
+        }
+    }
+    // user interaction → reset
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) resetFavicon();
+    });
+    document.addEventListener("click", resetFavicon);
+    document.addEventListener("keydown", resetFavicon);
+
+
+
 
     // Відправка повідомлення
     async function sendMessage(message = chatInput.value.trim()) {
@@ -290,6 +460,9 @@ document.addEventListener('DOMContentLoaded', loadHistory);
       loading.style.display = 'block';
       retryBtn.style.display = 'none';
       lastMessage = message;
+
+      // старт → ⏳
+        onAIThinking();
 
       try {
         const headers = { 'Content-Type': 'application/json' };
@@ -308,14 +481,19 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         loading.style.display = 'none';
         if (data.reply) {
           addMessage(data.reply, false);
+          onAIResponse(true);
         } else {
           handleError('Немає відповіді від сервера');
         }
+        // ✅ Після відповіді — галочка
+        setFaviconEmoji("✅");
+
       } catch (error) {
         loading.style.display = 'none';
         handleError(`Помилка з'єднання: ${error.message}`);
+        onAIResponse(false);
       }
-    }
+    } 
 
     // Обробка помилок
     function handleError(errorText) {
@@ -377,4 +555,3 @@ document.addEventListener('DOMContentLoaded', loadHistory);
   </script>
 </body>
 </html>
-
