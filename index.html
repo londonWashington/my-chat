@@ -126,21 +126,6 @@
       resize: none;
       box-sizing: border-box;
     }
-    #retry-btn {
-        width: 50px; /* Зменшення ширини */
-        height: 50px; /* Зменшення висоти */
-        padding: 0;
-        margin: 5px 2px 0 0;
-        background: var(--accent-color);
-        color: white;
-        border: none;
-        border-radius: 50%; /* Робимо кнопку круглою */
-        cursor: pointer;
-        transition: background 0.2s;
-        font-size: 24px; /* Збільшуємо розмір значка */
-        line-height: 50px;
-        text-align: center;
-    }
     #send-btn::before {
         content: '▶'; /* Значок "відправити" */
         font-size: 24px; /* Додано: Збільшуємо розмір шрифту для значка */
@@ -160,8 +145,31 @@
         align-items: center;
         transition: background 0.2s;
     } 
-    #retry-btn { display: none; background: #ff9800; }
-    #retry-btn:hover { background: #f57c00; }
+   #retry-btn::before {
+        content: '↻'; /* Символ, що обертається */
+        font-size: 24px; /* Збільшуємо розмір */
+        line-height: 1; /* Скидаємо висоту рядка */
+        }
+    #retry-btn {
+        width: 50px; /* Зменшення ширини */
+        height: 50px; /* Зменшення висоти */
+        padding: 0;
+        margin: 5px 2px 0 0;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%; /* Робимо кнопку круглою */
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 24px; /* Збільшуємо розмір значка */
+        line-height: 50px;
+        text-align: center;
+    }
+    #retry-btn { display: none; background: #ff9800; }    
+    #send-btn:hover, #menu-toggle:hover {
+      background: #0056b3;
+    }
+    #retry-btn:hover { background: #ae5802; }
     #menu-toggle {
       width: 10px;
       padding: 8px 12px;
@@ -172,9 +180,6 @@
       border-radius: 6px; 
       cursor: pointer;
       transition: background 0.2s;
-    }
-    #send-btn:hover, #menu-toggle:hover {
-      background: #0056b3;
     } 
     #menu-panel {
       display: none;
@@ -264,7 +269,7 @@
     <textarea id="chat-input" placeholder="Введіть повідомлення..."></textarea>
     <div>
         <button id="send-btn"></button>
-        <button id="retry-btn">Retry</button>
+        <button id="retry-btn"></button>
     </div>
 </div>
     <div id="loading" class="loading">AI думає...</div>
@@ -552,6 +557,25 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         sendMessage();
       }
     });
+    // Функція для підлаштування під клавіатуру
+    function adjustForKeyboard() {
+        const chatContainer = document.getElementById('chat-container');
+        const inputContainer = document.getElementById('input-container');
+        
+        // Отримуємо висоту контейнера введення
+        const inputHeight = inputContainer.offsetHeight;
+        
+        // Встановлюємо нижній відступ для контейнера чату
+        // Додаємо 20px як додатковий запас
+        chatContainer.style.paddingBottom = `${inputHeight + 20}px`;
+    }
+
+    // Викликаємо функцію при завантаженні сторінки
+    document.addEventListener('DOMContentLoaded', adjustForKeyboard);
+
+    // Викликаємо функцію при зміні розміру вікна (коли з'являється/зникає клавіатура)
+    window.addEventListener('resize', adjustForKeyboard);
+  
   </script>
 </body>
 </html>
