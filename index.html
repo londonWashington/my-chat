@@ -38,6 +38,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden; /* Приховуємо зайву прокрутку */
     }
     #chat-container {
         max-width: 1000px;
@@ -51,6 +52,7 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
+        flex-grow: 1; /* Змінено: Розтягуємо, щоб зайняти вільний простір */
         height: 100vh; /* Використовуйте 100vh для висоти */
     }
     #chat-container.compact {
@@ -557,25 +559,6 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         sendMessage();
       }
     });
-    // Функція для підлаштування під клавіатуру
-    function adjustForKeyboard() {
-        const chatContainer = document.getElementById('chat-container');
-        const inputContainer = document.getElementById('input-container');
-        
-        // Отримуємо висоту контейнера введення
-        const inputHeight = inputContainer.offsetHeight;
-        
-        // Встановлюємо нижній відступ для контейнера чату
-        // Додаємо 20px як додатковий запас
-        chatContainer.style.paddingBottom = `${inputHeight + 20}px`;
-    }
-
-    // Викликаємо функцію при завантаженні сторінки
-    document.addEventListener('DOMContentLoaded', adjustForKeyboard);
-
-    // Викликаємо функцію при зміні розміру вікна (коли з'являється/зникає клавіатура)
-    window.addEventListener('resize', adjustForKeyboard);
-  
   </script>
 </body>
 </html>
