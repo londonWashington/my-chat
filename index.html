@@ -604,19 +604,26 @@ document.addEventListener('DOMContentLoaded', loadHistory);
       }
     }); 
 
-    // Додайте цей код в ваш <script> блок
-    function setDynamicHeight() {
-        const viewportHeight = window.innerHeight;
-        const chatContainer = document.getElementById('chat-container');
-        chatContainer.style.height = `${viewportHeight}px`;
-    }
+    function setChatHeight() {
+    // Отримуємо висоту вікна браузера
+    const viewportHeight = window.innerHeight;
+    
+    // Отримуємо висоту контейнера введення
+    const inputContainer = document.getElementById('input-container');
+    const inputHeight = inputContainer.offsetHeight;
+    
+    // Встановлюємо висоту контейнера чату
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.style.height = `${viewportHeight - 2}px`;
+}
+
+    // Викликаємо функцію при завантаженні сторінки
+    document.addEventListener('DOMContentLoaded', setChatHeight);
 
     // Викликаємо функцію при завантаженні та зміні розміру вікна
-    window.addEventListener('resize', setDynamicHeight);
-    window.addEventListener('load', setDynamicHeight);
-
-    // Перший виклик
-    setDynamicHeight();
+    window.addEventListener('resize', setChatHeight);
+    window.addEventListener('load', setChatHeight);
+ 
   </script>
 </body>
 </html>
