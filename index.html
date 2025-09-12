@@ -30,7 +30,7 @@
     }
     html, body  {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100dvh;  
+      height: 100%;  
       margin: 0;
       padding: 0px;
       background: var(--bg-color);
@@ -52,7 +52,7 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
-        height: 100dvh;  
+        height: 100%;  
         flex-grow: 1; /* Дозволяє займати весь вільний простір */
         min-height: 0; /* Важливий рядок, щоб уникнути конфліктів у flexbox */
     }
@@ -67,50 +67,98 @@
         margin-bottom: 0px;
         line-height: 1.7;  
         display: flex;
+        flex-grow: 1; /* Дозволяє займати весь вільний простір */
         flex-direction: column;       
         flex-shrink: 1; /* Дозволяємо контейнеру стискатися */ 
     }
-    .message {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
-      max-width: 80%;
-      min-width: 100px;
-      word-wrap: break-word;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      position: relative;
-    }
+     
+.message {
+  margin: 10px;
+  max-width: 80%;
+  word-wrap: break-word;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.message-bubble {
+  padding: 10px;
+  border-radius: 15px;
+  transition: background 0.3s ease;
+}
+.user .message-bubble {
+  background: var(--user-bg) !important;
+}
+.ai .message-bubble {
+  background: var(--ai-bg) !important;
+}
+   /* Нові стилі для контейнера з кнопками */
+.message-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+  opacity: 0;
+  transition: opacity 0.2s ease-in-out;
+}
+/* Показуємо кнопки при наведенні миші на повідомлення */
+.message:hover .message-actions {
+  opacity: 1;
+}
+/* Позиціонування для повідомлень користувача */
+.user .message-actions {
+  justify-content: flex-end; /* Вирівнювання по правому краю */
+}
+/* Позиціонування для повідомлень AI */
+.ai .message-actions {
+  justify-content: flex-start; /* Вирівнювання по лівому краю */
+}
+/* Стилі самих кнопок */
+.action-btn {
+  font-size: 16px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  color: var(--text-color);
+  transition: transform 0.2s ease-in-out;
+  padding: 0;
+}
+.action-btn:hover {
+  transform: scale(1.2); /* Анімація при наведенні */
+}
+
+.message-content {
+  margin-bottom: 5px;
+}
     .message.visible {
       opacity: 1;
       transform: translateY(0);
     }
     .user {
-      background: var(--user-bg) !important;
       margin-left: auto;
       margin-right: 10px;
     }
     .ai {
-      background: var(--ai-bg) !important;
       margin-right: auto;
       margin-left: 10px;
-    }
-    .copy-btn {
-        position: absolute;
-        top: 4px;
-        right: 6px;
-        font-size: 14px;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.2s;
-    }
-    .message:hover .copy-btn {
-        opacity: 0.7;
-    }
-    .copy-btn:hover {
-        opacity: 1;
-    }
+    } 
+
+    /* Анімація зникнення */
+.message.fade-out {
+  opacity: 0;
+  height: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  transition: all 0.5s ease-in-out; /* Важлива зміна: анімуємо всі властивості */
+  overflow: hidden;
+}
+.message.fade-out + .message {
+  transform: translateY(-20px);
+  transition: transform 0.5s ease;
+}
     #chat-container.compact #input-container {
       max-width: 600px; /* Для компактного режиму */
     }
@@ -220,6 +268,7 @@
         /* right: 20px; */
         /* max-width: 1000px; */
         /* margin: 0 auto; */
+        margin-top: auto; /* Притискає контейнер до низу */
         display: flex;
         align-items: flex-end;
         gap: 10px;
@@ -290,6 +339,7 @@
         cursor: default;
         background: transparent;
     }
+    
   </style>
 </head>
 <body>
@@ -347,44 +397,45 @@
     compactToggle.textContent = document.getElementById('chat-container').classList.contains('compact') ? 'Повний режим' : 'Компактний режим';
 
     // Завантаження історії
-async function loadHistory() {
-  if (!webhookUrl) {
-    console.error('Webhook URL не вказано');
-    Swal.fire({ icon: 'error', title: 'Помилка', text: 'Вкажіть URL вебхука', confirmButtonText: 'OK' });
-    return;
-  }
-  const baseUrl = webhookUrl.split('/webhook/')[0];
-  const historyUrl = `${baseUrl}/webhook/get-history?session_id=main-user`;
-  try {
-    const response = await fetch(historyUrl, { 
-      method: 'GET', // Явно вказуємо GET для історії
-      headers: {
-        'ngrok-skip-browser-warning': 'true' // Обхід ngrok interstitial
-      },
-      signal: AbortSignal.timeout(10000) // 10 секунд, не 1 млн
-    });
-    console.log('Response status:', response.status); // Дебаг
-    console.log('Response headers:', [...response.headers.entries()]); // Дебаг CORS
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+    async function loadHistory() {
+    if (!webhookUrl) {
+        console.error('Webhook URL не вказано');
+        Swal.fire({ icon: 'error', title: 'Помилка', text: 'Вкажіть URL вебхука', confirmButtonText: 'OK' });
+        return;
     }
-    const data = await response.json();
-    console.log('History data:', data); // Дебаг
-    if (data.history) {
-      chatHistory.innerHTML = ''; // Очищаємо, щоб уникнути дублювання
-      messages = []; // Очищаємо масив
-      data.history.forEach(msg => {
-        addMessage(msg.text, msg.isUser); 
-      });
+
+    const baseUrl = webhookUrl.split('/webhook/')[0];
+    const historyUrl = `${baseUrl}/webhook/get-history?session_id=main-user`;
+    try {
+        const response = await fetch(historyUrl, { 
+        method: 'GET', // Явно вказуємо GET для історії
+        headers: {
+            'ngrok-skip-browser-warning': 'true' // Обхід ngrok interstitial
+        },
+        signal: AbortSignal.timeout(10000) // 10 секунд, не 1 млн
+        });
+        console.log('Response status:', response.status); // Дебаг
+        console.log('Response headers:', [...response.headers.entries()]); // Дебаг CORS
+        if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log('History data:', data); // Дебаг
+        if (data.history) {
+        chatHistory.innerHTML = ''; // Очищаємо, щоб уникнути дублювання
+        messages = []; // Очищаємо масив
+        data.history.forEach(msg => { 
+            addMessage(msg.text, msg.isUser, msg.id);
+        });
+        }
+        setTimeout(() => {
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        }, 100);
+    } catch (error) {
+        console.error('Помилка завантаження історії:', error);
+        Swal.fire({ icon: 'error', title: 'Помилка', text: `Не вдалося завантажити історію: ${error.message}`, confirmButtonText: 'OK' });
     }
-    setTimeout(() => {
-      chatHistory.scrollTop = chatHistory.scrollHeight;
-    }, 100);
-  } catch (error) {
-    console.error('Помилка завантаження історії:', error);
-    Swal.fire({ icon: 'error', title: 'Помилка', text: `Не вдалося завантажити історію: ${error.message}`, confirmButtonText: 'OK' });
-  }
-}
+    }
 document.addEventListener('DOMContentLoaded', loadHistory);
 
     // Збереження налаштувань
@@ -410,44 +461,99 @@ document.addEventListener('DOMContentLoaded', loadHistory);
     });
 
     // Додавання повідомлення
-    function addMessage(text, isUser) {
-        const message = document.createElement('div');
-        message.classList.add('message', isUser ? 'user' : 'ai', 'visible');
+function addMessage(text, isUser, messageId = null) {
+  const message = document.createElement('div');
+  message.className = `message ${isUser ? 'user' : 'ai'} visible`;
+  message.dataset.id = messageId;
 
-        let cleanedText = text
-            .replace(/```markdown\n?/, '')
-            .replace(/\n?```$/, '')
-            .replace(/\\n/g, '\n')
-            .replace(/^```|```$/g, '')
-            .trim();
+  // Створюємо нову "бульбашку" для повідомлення
+  const messageBubble = document.createElement('div');
+  messageBubble.className = 'message-bubble';
 
-        const content = document.createElement('div');
-        content.classList.add('message-content');
-        content.innerHTML = isUser ? cleanedText : marked.parse(cleanedText);
+  const textElement = document.createElement('div');
+  textElement.classList.add('message-content');
+  const cleanedText = text
+      .replace(/```markdown\n?/, '')
+      .replace(/\n?```$/, '')
+      .replace(/\\n/g, '\n')
+      .replace(/^```|```$/g, '')
+      .trim();
+  textElement.innerHTML = isUser ? cleanedText : marked.parse(cleanedText);
+  messageBubble.appendChild(textElement);
 
-        const copyBtn = document.createElement('span');
-        copyBtn.classList.add('copy-btn');
-        copyBtn.textContent = "📋";
-        copyBtn.title = "Скопіювати";
+  message.appendChild(messageBubble);
 
-        copyBtn.addEventListener('click', () => {
-            navigator.clipboard.writeText(cleanedText).then(() => {
-            copyBtn.textContent = "✅";
-            setTimeout(() => (copyBtn.textContent = "📋"), 1500);
-            });
-        });
+  // Створюємо контейнер для кнопок
+  const actionsContainer = document.createElement('div');
+  actionsContainer.className = 'message-actions';
 
-        message.appendChild(content);
-        message.appendChild(copyBtn);
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'action-btn';
+  copyBtn.innerHTML = '📄';
+  copyBtn.title = "Скопіювати";
+  copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(cleanedText).then(() => {
+          copyBtn.innerHTML = "✅";
+          setTimeout(() => copyBtn.innerHTML = "📄", 1500);
+      });
+  });
 
-        chatHistory.appendChild(message);
-        setTimeout(() => {
-            chatHistory.scrollTop = chatHistory.scrollHeight;
-        }, 10);
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'action-btn';
+  deleteBtn.innerHTML = '✖️';
+  deleteBtn.title = "Видалити";
+  deleteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    deleteMessage(messageId, message);
+  });
+  
+  actionsContainer.appendChild(copyBtn);
+  actionsContainer.appendChild(deleteBtn);
+  
+  message.appendChild(actionsContainer);
 
-        messages.push({ text: cleanedText, isUser });
+  chatHistory.appendChild(message);
+  
+  setTimeout(() => {
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+  }, 10);
+}
+
+// Функція для видалення повідомлення
+async function deleteMessage(messageId, element) {
+    if (!confirm('Ви впевнені, що хочете видалити це повідомлення?')) {
+        return;
     }
-
+    
+    const deleteUrl = `${webhookUrl.split('/webhook/')[0]}/webhook/delete-message`;
+    
+    try {
+        const response = await fetch(deleteUrl, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: messageId })
+        });
+        
+        if (response.ok) {
+            element.classList.add('fade-out');
+            
+            setTimeout(() => {
+                element.remove();
+            }, 500); // Час має відповідати тривалості transition у CSS
+            
+            console.log(`Повідомлення з ID ${messageId} успішно видалено.`);
+        } else {
+            throw new Error(`Помилка видалення: ${response.status}`);
+        }
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Помилка',
+            text: `Не вдалося видалити повідомлення: ${error.message}`,
+            confirmButtonText: 'OK'
+        });
+    }
+}
 
     // стани favicon
     let aiThinking = false;
@@ -495,55 +601,55 @@ document.addEventListener('DOMContentLoaded', loadHistory);
  
     // Відправка повідомлення
     async function sendMessage(message = chatInput.value.trim()) {
-    if (!message || !webhookUrl) return;
+        if (!message || !webhookUrl) return;
 
-    // Додаємо клас, щоб показати індикатор і блокуємо кнопку
-    sendBtn.classList.add('is-thinking');
-    sendBtn.disabled = true;
+        // Додаємо клас, щоб показати індикатор і блокуємо кнопку
+        sendBtn.classList.add('is-thinking');
+        sendBtn.disabled = true;
 
-    addMessage(message, true);
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    retryBtn.style.display = 'none';
-    lastMessage = message;
+        addMessage(message, true);
+        chatInput.value = '';
+        chatInput.style.height = 'auto';
+        retryBtn.style.display = 'none';
+        lastMessage = message;
 
-    // старт → ⏳
-    onAIThinking();
+        // старт → ⏳
+        onAIThinking();
 
-    try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
-        const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ message, session_id: 'main-user' }),
-        signal: AbortSignal.timeout(1000000)
-        });
-        if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            if (authToken) headers['Authorization'] = `Bearer ${authToken}`;
+            const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({ message, session_id: 'main-user' }),
+            signal: AbortSignal.timeout(1000000)
+            });
+            if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('Received data:', data);
+            
+            // Приховуємо завантаження
+            sendBtn.classList.remove('is-thinking');
+            sendBtn.disabled = false;
+            
+            if (data.reply) {
+            addMessage(data.reply, false);
+            onAIResponse(true);
+            } else {
+            handleError('Немає відповіді від сервера');
+            }
+            // ✅ Після відповіді — галочка
+            setFaviconEmoji("✅");
+        } catch (error) {
+            // Приховуємо завантаження і показуємо помилку
+            sendBtn.classList.remove('is-thinking');
+            sendBtn.disabled = false;
+            handleError(`Помилка з'єднання: ${error.message}`);
+            onAIResponse(false);
         }
-        const data = await response.json();
-        console.log('Received data:', data);
-        
-        // Приховуємо завантаження
-        sendBtn.classList.remove('is-thinking');
-        sendBtn.disabled = false;
-        
-        if (data.reply) {
-        addMessage(data.reply, false);
-        onAIResponse(true);
-        } else {
-        handleError('Немає відповіді від сервера');
-        }
-        // ✅ Після відповіді — галочка
-        setFaviconEmoji("✅");
-    } catch (error) {
-        // Приховуємо завантаження і показуємо помилку
-        sendBtn.classList.remove('is-thinking');
-        sendBtn.disabled = false;
-        handleError(`Помилка з'єднання: ${error.message}`);
-        onAIResponse(false);
-    }
     }
 
     // Обробка помилок
