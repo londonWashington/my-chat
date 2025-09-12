@@ -35,10 +35,8 @@
       background: var(--bg-color);
       color: var(--text-color);
       transition: background 0.3s, color 0.3s;
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow: hidden; /* Приховуємо зайву прокрутку */
     }
     #chat-container {
         max-width: 1000px;
@@ -52,8 +50,6 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
-        flex-grow: 1; /* Змінено: Розтягуємо, щоб зайняти вільний простір */
-        height: auto; /* Змінено: Видаляємо фіксовану висоту */
     }
     #chat-container.compact {
       max-width: 600px;
@@ -559,6 +555,25 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         sendMessage();
       }
     });
+  // Функція для динамічної зміни висоти контейнера
+function setChatHeight() {
+    // Отримуємо висоту вікна браузера
+    const viewportHeight = window.innerHeight;
+    
+    // Отримуємо висоту контейнера введення
+    const inputContainer = document.getElementById('input-container');
+    const inputHeight = inputContainer.offsetHeight;
+    
+    // Встановлюємо висоту контейнера чату
+    const chatContainer = document.getElementById('chat-container');
+    chatContainer.style.height = `${viewportHeight - 2}px`;
+}
+
+// Викликаємо функцію при завантаженні сторінки
+document.addEventListener('DOMContentLoaded', setChatHeight);
+
+// Викликаємо функцію при зміні розміру вікна (наприклад, при появі клавіатури)
+window.addEventListener('resize', setChatHeight);
   </script>
 </body>
 </html>
