@@ -11,285 +11,285 @@
 
   <style>
     :root {
-  --bg-color: #f9f9f9;
-  --text-color: #333;
-  --chat-bg: #fff;
-  --user-bg: #e0f7fa;
-  --ai-bg: #f5f5f5;
-  --border-color: #ddd;
-  --accent-color: #007bff;
-}
-body.dark {
-  --bg-color: #1e1e1e;
-  --text-color: #eee;
-  --chat-bg: var(--bg-color);
-  --user-bg: #393b46;
-  --ai-bg: var(--bg-color);
-  --border-color: #444;
-  --accent-color: #4da6ff;
-}
-html, body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  height: 100%; /* Гарантує, що html та body займають повну висоту вікна */
-  margin: 0;
-  padding: 0;
-  background: var(--bg-color);
-  color: var(--text-color);
-  transition: background 0.3s, color 0.3s;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Забороняємо прокрутку всієї сторінки */
-}
-#chat-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  border: 0px solid var(--border-color);
-  padding: 0px;
-  background: var(--chat-bg);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
-  height: 100vh; /* Використовуємо 100vh, щоб контейнер займав всю висоту */
-}
-#chat-container.compact {
-  max-width: 600px;
-}
-#chat-history {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px;
-  border-bottom: 0px solid var(--border-color);
-  margin-bottom: 0px;
-  line-height: 1.7;  
-  display: flex;
-  flex-direction: column;       
-  flex-shrink: 1; /* Дозволяємо контейнеру стискатися */ 
-  padding-right: 25px; /* Збільшений відступ для скролбару */
-  margin-right: -15px; /* Компенсація відступу */
-}
-.message {
-  margin: 10px 0;
-  padding: 10px;
-  border-radius: 8px;
-  max-width: 80%;
-  min-width: 100px;
-  word-wrap: break-word;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  position: relative;
-}
-.message.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-.user {
-  background: var(--user-bg) !important;
-  margin-left: auto;
-  margin-right: 10px;
-}
-.ai {
-  background: var(--ai-bg) !important;
-  margin-right: auto;
-  margin-left: 10px;
-}
-.copy-btn {
-  position: absolute;
-  top: 4px;
-  right: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.message:hover .copy-btn {
-  opacity: 0.7;
-}
-.copy-btn:hover {
-  opacity: 1;
-}
-#chat-container.compact #input-container {
-  max-width: 600px; /* Для компактного режиму */
-}
-#chat-input {
-  width: 100%;
-  min-height: 90px;
-  max-height: 50vh;
-  overflow-y: auto;
-  font-size: 18px;      /* більший шрифт */
-  line-height: 1.5;     /* щоб рядки не злипалися */
-  padding: 2px;
-  margin-top: 0px;
-  border: 0px solid var(--bg-color);
-  border-radius: 8px;
-  background: var(--chat-bg);
-  color: var(--text-color);
-  resize: none;
-  box-sizing: border-box;
-}
-#chat-input:focus {
-  outline: none; /* Прибираємо білий бордер при фокусі */
-}
-#send-btn::before {
-  content: '➤'; /* Значок "відправити" */
-  font-size: 24px; /* Додано: Збільшуємо розмір шрифту для значка */
-  line-height: 1;
-}
-#send-btn {
-  content: '';
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 50%; /* Робимо кнопку круглою */
-  cursor: pointer;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background 0.2s;
-} 
-#send-btn.is-thinking::before {
-  content: '';
-  width: 24px;
-  height: 24px;
-  border: 4px solid var(--text-color);
-  border-top: 4px solid var(--accent-color);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0;
-}
-#send-btn.is-thinking {
-    pointer-events: none;
-    cursor: default;
-    background: transparent;
-}
-#retry-btn::before {
-  content: '↻'; /* Символ, що обертається */
-  font-size: 24px; /* Збільшуємо розмір */
-  line-height: 1; /* Скидаємо висоту рядка */
-}
-#retry-btn {
-  width: 50px; /* Зменшення ширини */
-  height: 50px; /* Зменшення висоти */
-  padding: 0;
-  margin: 5px 2px 0 0;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 50%; /* Робимо кнопку круглою */
-  cursor: pointer;
-  transition: background 0.2s;
-  font-size: 24px; /* Збільшуємо розмір значка */
-  line-height: 50px;
-  text-align: center;
-}
-#retry-btn { display: none; background: #ff9800; }    
-#send-btn:hover, #menu-toggle:hover {
-  background: #0056b3;
-}
-#retry-btn:hover { background: #ae5802; }
-#menu-toggle {
-  width: 10px;
-  padding: 8px 12px;
-  margin: 5px 2px 0 0;
-  background: var(--accent-color);
-  color: white;
-  border: none;
-  border-radius: 6px; 
-  cursor: pointer;
-  transition: background 0.2s;
-} 
-#menu-panel {
-  display: none;
-  padding: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  margin-bottom: 10px;
-  background: var(--chat-bg);
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-#menu-panel.visible {
-  display: block;
-  opacity: 1;
-  transform: translateY(0);
-}
-#url-input, #token-input, #search-input {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-#input-container {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  background: var(--chat-bg);
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
-  z-index: 1000;
-  border-top: 1px solid var(--border-color);
-  margin-top: auto;
-}
-#loading {
-  position: fixed;
-  bottom: 70px; /* Над input-container */
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--accent-color);
-  font-style: italic;
-  display: none;
-}
-/* Налаштування скролбару */
-::-webkit-scrollbar {
-  width: 8px; /* Робимо скролбар тоншим */
-}
-/* Колір рухомої частини (thumb) */
-::-webkit-scrollbar-thumb {
-  background-color: var(--border-color); /* Використовуємо колір бордера */
-  border-radius: 4px; /* Закруглюємо краї */
-}
-/* Колір рухомої частини при наведенні курсора */
-::-webkit-scrollbar-thumb:hover {
-  background-color: var(--text-color);
-}
-/* Колір треку (тла скролбару) */
-::-webkit-scrollbar-track {
-  background-color: transparent;
-}
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-.thinking-indicator {
-  content: '';
-  width: 24px; /* Розмір квадрата */
-  height: 24px;
-  border: 4px solid var(--text-color);
-  border-top: 4px solid var(--accent-color);
-  border-radius: 50%; /* Робимо круг */
-  animation: spin 1s linear infinite;
-}
-.thinking-indicator:before {
-    content: '';
-    width: 24px;
-    height: 24px;
-    border: 4px solid var(--text-color);
-    border-top: 4px solid var(--accent-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --chat-bg: #fff;
+      --user-bg: #e0f7fa;
+      --ai-bg: #f5f5f5;
+      --border-color: #ddd;
+      --accent-color: #007bff;
+    }
+    body.dark {
+      --bg-color: #18191c;
+      --text-color: #eee;
+      --chat-bg: var(--bg-color);
+      --user-bg: #393b46;
+      --ai-bg: var(--bg-color);
+      --border-color: #444;
+      --accent-color: #4da6ff;
+    }
+    html, body  {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100vh; /* Гарантує, що html та body займають повну висоту вікна */
+      margin: 0;
+      padding: 0px;
+      background: var(--bg-color);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Забороняємо прокрутку всієї сторінки */
+    }
+    #chat-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        /* Видаліть position: fixed */
+        border: 0px solid var(--border-color);
+        padding: 0px;
+        background: var(--chat-bg);
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s;
+        display: flex;
+        flex-direction: column;
+        height: auto; /* Змініть, якщо вона фіксована */ 
+        flex-grow: 1; /* Дозволяє займати весь вільний простір */
+        min-height: 0; /* Важливий рядок, щоб уникнути конфліктів у flexbox */
+    }
+    #chat-container.compact {
+      max-width: 600px;
+    }
+    #chat-history {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+        border-bottom: 0px solid var(--border-color);
+        margin-bottom: 0px;
+        line-height: 1.7;  
+        display: flex;
+        flex-direction: column;       
+        flex-shrink: 1; /* Дозволяємо контейнеру стискатися */ 
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 80%;
+      min-width: 100px;
+      word-wrap: break-word;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      position: relative;
+    }
+    .message.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .user {
+      background: var(--user-bg) !important;
+      margin-left: auto;
+      margin-right: 10px;
+    }
+    .ai {
+      background: var(--ai-bg) !important;
+      margin-right: auto;
+      margin-left: 10px;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 4px;
+        right: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .message:hover .copy-btn {
+        opacity: 0.7;
+    }
+    .copy-btn:hover {
+        opacity: 1;
+    }
+    #chat-container.compact #input-container {
+      max-width: 600px; /* Для компактного режиму */
+    }
+    #chat-input {
+      width: 100%;
+      min-height: 90px;
+      max-height: 50vh;
+      overflow-y: auto;
+      font-size: 18px;      /* більший шрифт */
+      line-height: 1.5;     /* щоб рядки не злипалися */
+      padding: 2px;
+      margin-top: 0px;
+      border: 0px solid var(--bg-color);
+      border-radius: 8px;
+      background: var(--chat-bg);
+      color: var(--text-color);
+      resize: none;
+      box-sizing: border-box;
+    }
+    #chat-input:focus {
+        outline: none; /* Прибираємо білий бордер при фокусі */
+    }
+    #send-btn::before {
+        content: '➤'; /* Значок "відправити" */
+        font-size: 24px; /* Додано: Збільшуємо розмір шрифту для значка */
+        line-height: 1;
+    }
+    #send-btn {
+        content: '';
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%; /* Робимо кнопку круглою */
+        cursor: pointer;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: background 0.2s;
+    } 
+   #retry-btn::before {
+        content: '↻'; /* Символ, що обертається */
+        font-size: 24px; /* Збільшуємо розмір */
+        line-height: 1; /* Скидаємо висоту рядка */
+        }
+    #retry-btn {
+        width: 50px; /* Зменшення ширини */
+        height: 50px; /* Зменшення висоти */
+        padding: 0;
+        margin: 5px 2px 0 0;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        border-radius: 50%; /* Робимо кнопку круглою */
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 24px; /* Збільшуємо розмір значка */
+        line-height: 50px;
+        text-align: center;
+    }
+    #retry-btn { display: none; background: #ff9800; }    
+    #send-btn:hover, #menu-toggle:hover {
+      background: #0056b3;
+    }
+    #retry-btn:hover { background: #ae5802; }
+    #menu-toggle {
+      width: 10px;
+      padding: 8px 12px;
+      margin: 5px 2px 0 0;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 6px; 
+      cursor: pointer;
+      transition: background 0.2s;
+    } 
+    #menu-panel {
+      display: none;
+      padding: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      background: var(--chat-bg);
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    #menu-panel.visible {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+    }
+    #url-input, #token-input, #search-input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    #input-container {
+        /* Видаліть ці рядки */
+        /* position: fixed; */
+        /* bottom: 20px; */
+        /* left: 20px; */
+        /* right: 20px; */
+        /* max-width: 1000px; */
+        /* margin: 0 auto; */
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        background: var(--chat-bg);
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        /* Додайте це для правильного відображення */
+        border-top: 1px solid var(--border-color);
+    }
+    #loading {
+      position: fixed;
+      bottom: 70px; /* Над input-container */
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--accent-color);
+      font-style: italic;
+      display: none;
+    }
+    /* Налаштування скролбару */
+    ::-webkit-scrollbar {
+        width: 8px; /* Робимо скролбар тоншим */
+    }
+    /* Колір рухомої частини (thumb) */
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--border-color); /* Використовуємо колір бордера */
+        border-radius: 4px; /* Закруглюємо краї */
+    }
+    /* Колір рухомої частини при наведенні курсора */
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--text-color);
+    }
+    /* Колір треку (тла скролбару) */
+    ::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .thinking-indicator {
+        content: '';
+        width: 24px; /* Розмір квадрата */
+        height: 24px;
+        border: 4px solid var(--text-color);
+        border-top: 4px solid var(--accent-color);
+        border-radius: 50%; /* Робимо круг */
+        animation: spin 1s linear infinite;
+    }
+    #send-btn.is-thinking::before {
+        content: '';
+        width: 24px;
+        height: 24px;
+        border: 4px solid var(--text-color);
+        border-top: 4px solid var(--accent-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0;
+    }
+    #send-btn.is-thinking {
+        pointer-events: none;
+        cursor: default;
+        background: transparent;
+    }
   </style>
 </head>
 <body>
