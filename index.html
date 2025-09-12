@@ -30,7 +30,7 @@
     }
     html, body  {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      height: 100%; /* Гарантує, що html та body займають повну висоту вікна */
+      height: 100dvh;  
       margin: 0;
       padding: 0px;
       background: var(--bg-color);
@@ -52,7 +52,7 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
-        height: auto;  
+        height: 100dvh;  
         flex-grow: 1; /* Дозволяє займати весь вільний простір */
         min-height: 0; /* Важливий рядок, щоб уникнути конфліктів у flexbox */
     }
@@ -603,24 +603,6 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         sendMessage();
       }
     }); 
-
-    function setChatHeight() {
-    // Отримуємо висоту вікна браузера
-    const viewportHeight = window.innerHeight;
-    
-    // Отримуємо висоту контейнера введення
-    const inputContainer = document.getElementById('input-container');
-    const inputHeight = inputContainer.offsetHeight;
-    
-    // Встановлюємо висоту контейнера чату
-    const chatContainer = document.getElementById('chat-container');
-    chatContainer.style.height = `${viewportHeight - 2}px`;
-}
-
-    // Викликаємо функцію при завантаженні сторінки
-
-    // Викликаємо функцію при завантаженні та зміні розміру вікна
-    window.addEventListener('resize', setChatHeight);
  
   </script>
 </body>
