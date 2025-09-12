@@ -28,8 +28,9 @@
       --border-color: #444;
       --accent-color: #4da6ff;
     }
-    body {
+    html, body  {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      height: 100%; /* Гарантує, що html та body займають повну висоту вікна */
       margin: 0;
       padding: 0px;
       background: var(--bg-color);
@@ -37,6 +38,7 @@
       transition: background 0.3s, color 0.3s;
       display: flex;
       flex-direction: column;
+      overflow: hidden; /* Забороняємо прокрутку всієї сторінки */
     }
     #chat-container {
         max-width: 1000px;
@@ -50,6 +52,9 @@
         transition: all 0.3s;
         display: flex;
         flex-direction: column;
+        height: auto; /* Змініть, якщо вона фіксована */ 
+        flex-grow: 1; /* Дозволяє займати весь вільний простір */
+        min-height: 0; /* Важливий рядок, щоб уникнути конфліктів у flexbox */
     }
     #chat-container.compact {
       max-width: 600px;
@@ -62,7 +67,9 @@
       margin-bottom: 0px;
       line-height: 1.7;  
       display: flex;
-      flex-direction: column;
+      flex-direction: column;      
+        overflow-y: auto; /* Дозволяємо прокрутку лише для історії */
+        flex-shrink: 1; /* Дозволяємо контейнеру стискатися */
     }
     .message {
       margin: 10px 0;
@@ -554,26 +561,7 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         e.preventDefault();
         sendMessage();
       }
-    });
-  // Функція для динамічної зміни висоти контейнера
-function setChatHeight() {
-    // Отримуємо висоту вікна браузера
-    const viewportHeight = window.innerHeight;
-    
-    // Отримуємо висоту контейнера введення
-    const inputContainer = document.getElementById('input-container');
-    const inputHeight = inputContainer.offsetHeight;
-    
-    // Встановлюємо висоту контейнера чату
-    const chatContainer = document.getElementById('chat-container');
-    chatContainer.style.height = `${viewportHeight - 2}px`;
-}
-
-// Викликаємо функцію при завантаженні сторінки
-document.addEventListener('DOMContentLoaded', setChatHeight);
-
-// Викликаємо функцію при зміні розміру вікна (наприклад, при появі клавіатури)
-window.addEventListener('resize', setChatHeight);
+    }); 
   </script>
 </body>
 </html>
