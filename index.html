@@ -603,7 +603,20 @@ document.addEventListener('DOMContentLoaded', loadHistory);
         sendMessage();
       }
     }); 
- 
+
+    // Додайте цей код в ваш <script> блок
+    function setDynamicHeight() {
+        const viewportHeight = window.innerHeight;
+        const chatContainer = document.getElementById('chat-container');
+        chatContainer.style.height = `${viewportHeight}px`;
+    }
+
+    // Викликаємо функцію при завантаженні та зміні розміру вікна
+    window.addEventListener('resize', setDynamicHeight);
+    window.addEventListener('load', setDynamicHeight);
+    
+    // Перший виклик
+    setDynamicHeight();
   </script>
 </body>
 </html>
