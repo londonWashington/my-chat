@@ -78,7 +78,7 @@
   word-wrap: break-word;
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity 0.3s ease, transform 0.3s ease, margin 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -143,22 +143,7 @@
       margin-right: auto;
       margin-left: 10px;
     } 
-
-    /* Анімація зникнення */
-.message.fade-out {
-  opacity: 0;
-  height: 0;
-  margin-top: 0;
-  margin-bottom: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  transition: all 0.5s ease-in-out; /* Важлива зміна: анімуємо всі властивості */
-  overflow: hidden;
-}
-.message.fade-out + .message {
-  transform: translateY(-20px);
-  transition: transform 0.5s ease;
-}
+  
     #chat-container.compact #input-container {
       max-width: 600px; /* Для компактного режиму */
     }
@@ -519,32 +504,51 @@ function addMessage(text, isUser, messageId = null) {
   }, 10);
 }
 
-// Функція для видалення повідомлення
 async function deleteMessage(messageId, element) {
-    if (!confirm('Ви впевнені, що хочете видалити це повідомлення?')) {
-        return;
-    }
-    
+    if (!confirm('Ви впевнені, що хочете видалити це повідомлення?')) return;
+
     const deleteUrl = `${webhookUrl.split('/webhook/')[0]}/webhook/delete-message`;
-    
+
     try {
         const response = await fetch(deleteUrl, {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: messageId })
         });
-        
-        if (response.ok) {
-            element.classList.add('fade-out');
-            
-            setTimeout(() => {
-                element.remove();
-            }, 500); // Час має відповідати тривалості transition у CSS
-            
-            console.log(`Повідомлення з ID ${messageId} успішно видалено.`);
-        } else {
-            throw new Error(`Помилка видалення: ${response.status}`);
-        }
+
+        if (!response.ok) throw new Error(`Помилка видалення: ${response.status}`);
+
+        // 1. Знімаємо позиції до
+        const messages = [...chatHistory.querySelectorAll('.message')];
+        const startPositions = new Map();
+        messages.forEach(m => startPositions.set(m, m.getBoundingClientRect().top));
+
+        // 2. Видаляємо елемент з DOM
+        element.remove();
+
+        // 3. Знімаємо позиції після
+        const endPositions = new Map();
+        messages.forEach(m => {
+            if (document.body.contains(m)) {
+                endPositions.set(m, m.getBoundingClientRect().top);
+            }
+        });
+
+        // 4. Для кожного елемента анімуємо різницю
+        messages.forEach(m => {
+            if (!endPositions.has(m)) return;
+            const delta = startPositions.get(m) - endPositions.get(m);
+            if (delta) {
+                m.style.transform = `translateY(${delta}px)`;
+                m.style.transition = 'none';
+                requestAnimationFrame(() => {
+                    m.style.transition = 'transform 0.5s ease';
+                    m.style.transform = '';
+                });
+            }
+        });
+
+        console.log(`Повідомлення з ID ${messageId} успішно видалено.`);
     } catch (error) {
         Swal.fire({
             icon: 'error',
@@ -554,6 +558,7 @@ async function deleteMessage(messageId, element) {
         });
     }
 }
+
 
     // стани favicon
     let aiThinking = false;
